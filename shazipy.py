@@ -7,7 +7,6 @@ import spotipy.util as util
 api = Mobileclient()
 from pprint import pprint
 
-"/Users/Cam/Downloads/halieshazam.html"
 
 
 def parse_shazams():
@@ -93,7 +92,6 @@ class GooglePlay():
         """ Searches user playlists for the desired name.
          Then adds songs to it, or creates a new one."""
 
-        # global playlist_name
         new = False
         playlist_id = ''
         user_pls = api.get_all_user_playlist_contents()
@@ -127,16 +125,9 @@ class GooglePlay():
                 api.add_songs_to_playlist(playlist_id, s)
         print('Finished')
 
+
 class SpotMeths(object):
     """Methods for Spotify"""
-
-    # export SPOTIPY_CLIENT_ID='97473d1466df4eda88729bd53427b16d'
-    # export SPOTIPY_CLIENT_SECRET='76c946bdcb044ebc8919df23d37da826'
-    # export SPOTIPY_REDIRECT_URI='https://github.com/treethought/shazipy'
-
-
-
-
 
     def authorize(username):
         scope = 'playlist-modify-public playlist-modify-private playlist-read-private'
@@ -235,29 +226,9 @@ class SpotMeths(object):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def spotify_main(playlist_name):
     username = input("Enter your spotify username: ")
-    # token = util.prompt_for_user_token(username)
-    # if token:
     token = SpotMeths.authorize(username)
-    # sp = spotipy.Spotify(auth=token)
     data = parse_shazams()
     song_ids = SpotMeths.make_song_id_list(data)
     SpotMeths.choose_update_playlist(username, song_ids, playlist_name, token)
@@ -269,8 +240,6 @@ def google_main(playlist_name):
     data = parse_shazams()
     GooglePlay.song_ids = GooglePlay.make_song_id_list(data)
     GooglePlay.choose_update_playlist(song_ids, playlist_name)
-
-# google_main()
 
 def main():
     playlist_name = input("Enter a name for the playlist to be created: ")
