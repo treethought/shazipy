@@ -101,7 +101,7 @@ class GooglePlay():
         for p in user_pls:
             if p["name"] == playlist_name:
                 playlist_id = p['id']
-                current_playlist = p                   # current_playlist used to monitor # of tracks
+                current_playlist = p                   # current_playlist used to monitor tracks
                 print("Found your shazam playlist")    # if limit reached, new playlist is created
                 break
 
@@ -155,22 +155,18 @@ class SpotMeths(object):
         sp = spotipy.Spotify()
         try:
             results = sp.search(title + " " + artist, limit=15)
-            # pprint(results, indent=3)
             if results['tracks']['total'] > 0:
-                # print(str(len(results)) + ' results')
                 attempt = 0
-                # print((results['tracks']['items'][0]))
                 for result in results:
-                    # pprint(result, indent=3)
                     res = results['tracks']['items'][attempt]
                     if res['artists'][0]['name'].lower() == artist.lower():
                         if res['name'].lower() == title.lower():
-                            print(res['id'])
+                            print('Found ID for %s - %s\n' % (title, artist))
                             return res['id']
-                    # print("Could not find ID for %s - %s\n" % (title, artist))
+                    print("Could not find ID for %s - %s\n" % (title, artist))
                     return "0"
             else:
-                # print('No results for %s - %s\n' % (title, artist))
+                print('No results for %s - %s\n' % (title, artist))
                 return '0'
         except Exception as e:
             print(e)
@@ -188,7 +184,7 @@ class SpotMeths(object):
             else:
                 song_ids.append(nid)
                 track["TrackID"] = nid
-        print('finished getting song_ids\n')
+        print('Finished getting song_ids\n')
         print("Couldn't find id for the following tracks:\n")
         for track in failed_tracks:
             print('%s - %s' % (track["Title"], track["Artist"]))
@@ -205,9 +201,43 @@ class SpotMeths(object):
         playlist_id = ''
         sp = spotipy.Spotify(auth=token)
         user_playlists = sp.user_playlists(username)
-        pprint(user_playlists)
-        for item in user_playlists['items']:
-            print(item['name'])
+        for p in user_playlists['items']:
+            # print(p['name'])
+            if p['name'] == playlist_name:
+                # current_playlist = p
+                playlist_id = p['id']
+                print(playlist_id)
+                print("Found your shazam playlist with ID: %s" % playlist_id)
+                break
+
+        if playlist_id == '':                                # playlist_name not found, create one
+            newplaylist = (sp.user_playlist_create(username, playlist_name))
+            playlist_id = newplaylist['id']
+            print('created new playlist')
+            new = True
+
+        if not new:                               # prevent duplicates, by removing existing songs
+            contents = sp.user_playlist(username, playlist_id, fields="tracks")
+            # pprint(contents['tracks']['items'])
+            for item in contents['tracks']['items']:
+                if item['track']['id'] in song_ids:
+                    song_ids.remove(item['track']['id'])   # prevents adding duplicate
+            song_ids = filter(None, song_ids)
+
+        try:
+            sp.user_playlist_add_tracks(username, playlist_id, song_ids)
+            print('Finished')
+        except Exception as e:
+            print(e)
+            # print("trying again")
+            # sp.user_playlist_add_tracks(username, playlist_id, song_ids)
+            # print("Success")
+
+
+
+
+
+
 
 
 
