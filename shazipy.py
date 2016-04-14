@@ -4,9 +4,10 @@ import bs4
 from gmusicapi import Mobileclient
 import spotipy
 import spotipy.util as util
+api = Mobileclient()
+from pprint import pprint
 
 
-# service = input("Please enter which music service you want to use: \n (google/spotify) ")
 
 def parse_shazams():
         """Parses shazam history, and returns a list of track dictionaries"""
@@ -40,17 +41,17 @@ def parse_shazams():
 class GooglePlay():
     """Methods for google play all access"""
 
-    api = Mobileclient()
-    def login(self):
+    def login():
         # logged_in = False
-        email = input("Enter your email for %s: " % service)
-        pw = input("Enter your password for %s: " % service)
+        email = input("Enter your gmail")
+        pw = input("Enter your gmail password")
+        global api
         logged_in = api.login(email, pw, Mobileclient.FROM_MAC_ADDRESS)
         if logged_in:
             print("Successfuly logged in to Google Play All Access\n")
         else:
             print("Could not login to Google Play All Access, try again\n")
-            GooglePlay.login(self)
+            GooglePlay.login()
 
 
     def get_song_id(title, artist):
@@ -85,11 +86,11 @@ class GooglePlay():
         print('finished getting song_ids')
         return song_ids
 
-    def choose_update_playlist(song_ids):
+    def choose_update_playlist(song_ids, playlist_name):
         """ Searches user playlists for the desired name.
          Then adds songs to it, or creates a new one."""
 
-        playlist_name = input("Enter a name for the playlist to be created")
+        # global playlist_name
         new = False
         playlist_id = ''
         user_pls = api.get_all_user_playlist_contents()
@@ -129,40 +130,52 @@ class SpotMeths(object):
     # export SPOTIPY_CLIENT_ID='97473d1466df4eda88729bd53427b16d'
     # export SPOTIPY_CLIENT_SECRET='76c946bdcb044ebc8919df23d37da826'
     # export SPOTIPY_REDIRECT_URI='https://github.com/treethought/shazipy'
-    spot = spotipy.Spotify()
+    sp = spotipy.Spotify()
+    # username = input("Enter your spotify username: ")
 
 
 
-    def authorize():
 
-        username = input("Enter your spotify username: ")
+    def authorize(username):
+
+        # username = input("Enter your spotify username: ")
         token = util.prompt_for_user_token(username)
         if token:
             print("User authorization successful!\n")
             return token
         else:
             print("authorization failed.")
-            return token
+            return authorize(input("Enter your spotify username: "))
 
     def get_song_id(title, artist):
         """takes in song title and artist as strings and returns Spotify ID or 0 if not found."""
         spot = spotipy.Spotify()
-        results = spot.search("flying lotus riot", limit=15,)
-        attempt = 0
-        res = results['tracks']['items'][attempt]
-        # print(res['artists'][0]['name'].lower())
-        # print(res['name'].lower())
-        # print((res['artists'][0]['name']).lower() == artist.lower())
-        # print(res['name'].lower() == title.lower())
-        if res['artists'][0]['name'].lower() == artist.lower():
-            if res['name'].lower() == title.lower():
-                print(res['id'])
-                return res['id']
-        print("Could not find ID for %s - %s\n" % (title, artist))
-        return "0"
+        results = spot.search(title + " " + artist, limit=15)
+        # pprint(results, indent=3)
+        if results['tracks']['total'] > 0:
+            # print(str(len(results)) + ' results')
+            attempt = 0
+            # print((results['tracks']['items'][0]))
+            for result in results:
+                # pprint(result, indent=3)
+                res = results['tracks']['items'][attempt]
+                # # print(res['artists'][0]['name'].lower())
+                # # print(res['name'].lower())
+                # # print((res['artists'][0]['name']).lower() == artist.lower())
+                # # print(res['name'].lower() == title.lower())
+                if res['artists'][0]['name'].lower() == artist.lower():
+                    if res['name'].lower() == title.lower():
+                        print(res['id'])
+                        return res['id']
+                print("Could not find ID for %s - %s\n" % (title, artist))
+                return "0"
+        else:
+            print('No results for')
+            return '0'
+
 
     def make_song_id_list(data):
-    """Data is a list of track dictionaries. Search AA for each track, and appends nid to a list of ids.
+        """Data is a list of track dictionaries. Search AA for each track, and appends nid to a list of ids.
             If track not found, append track dict to failed tracks."""
         song_ids = []
         failed_tracks = []
@@ -177,20 +190,16 @@ class SpotMeths(object):
         print('finished getting song_ids')
         return song_ids
 
-    def choose_update_playlist(song_ids):
+    def choose_update_playlist(song_ids, playlist_name):
         """ Searches user playlists for the desired name.
          Then adds songs to it, or creates a new one."""
 
-        playlist_name = input("Enter a name for the playlist to be created")
+        # playlist_name = input("Enter a name for the playlist to be created")
         new = False
         playlist_id = ''
         sp = spotipy.Spotify()
-        user_playlists = sp.user_playlists()
-
-
-
-    
-
+        user_playlists = sp.user_playlists(username)
+        print(user_playlists)
 
 
 
@@ -200,20 +209,38 @@ class SpotMeths(object):
 
 
 
-SpotMeths.authorize()
-SpotMeths.get_song_id('riot', 'flying lotus')
 
 
 
 
 
-# def google_main():
-#     GooglePlay.login()
-#     GooglePlay.data = parse_shazams()
-#     GooglePlay.song_ids = make_song_id_list(data)
-#     GooglePlay.choose_update_playlist(song_ids)
+def spotify_main(playlist_name):
+    username = input("Enter your spotify username: ")
+    # token = util.prompt_for_user_token(username)
+    # if token:
+    SpotMeths.authorize(username)
+    data = parse_shazams()
+    song_ids = SpotMeths.make_song_id_list(data)
 
 
+def google_main(playlist_name):
+    api = Mobileclient()
+    GooglePlay.login()
+    data = parse_shazams()
+    GooglePlay.song_ids = GooglePlay.make_song_id_list(data)
+    GooglePlay.choose_update_playlist(song_ids, playlist_name)
+
+# google_main()
+
+def main():
+    playlist_name = input("Enter a name for the playlist to be created: ")
+    service = input("Please enter which music service you want to use: \n (google/spotify) ")
+    if service == "g" or service == 'google':
+        google_main(playlist_name)
+    else:
+        spotify_main(playlist_name)
+
+main()
 
 
 
