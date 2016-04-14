@@ -7,12 +7,15 @@ import spotipy.util as util
 api = Mobileclient()
 from pprint import pprint
 
+"/Users/Cam/Downloads/halieshazam.html"
 
 
 def parse_shazams():
         """Parses shazam history, and returns a list of track dictionaries"""
 
-        file = input("Enter the path to your shazam history html file: ")
+        import easygui
+        file = easygui.fileopenbox(msg='Select your shazam histor html file', filetypes=['*.html'])
+        # file = input("Enter the path to your shazam history html file: ")
         try:
             file = open(file, 'r')
             htmltree = file.read()
@@ -130,49 +133,48 @@ class SpotMeths(object):
     # export SPOTIPY_CLIENT_ID='97473d1466df4eda88729bd53427b16d'
     # export SPOTIPY_CLIENT_SECRET='76c946bdcb044ebc8919df23d37da826'
     # export SPOTIPY_REDIRECT_URI='https://github.com/treethought/shazipy'
-    sp = spotipy.Spotify()
-    # username = input("Enter your spotify username: ")
+
 
 
 
 
     def authorize(username):
-
-        # username = input("Enter your spotify username: ")
-        token = util.prompt_for_user_token(username)
+        scope = 'playlist-modify-public playlist-modify-private playlist-read-private'
+        token = util.prompt_for_user_token(username, scope, '97473d1466df4eda88729bd53427b16d',
+                                                            '76c946bdcb044ebc8919df23d37da826',
+                                                            'https://github.com/treethought/shazipy')
         if token:
             print("User authorization successful!\n")
             return token
         else:
             print("authorization failed.")
-            return authorize(input("Enter your spotify username: "))
+            return SpotMeths.authorize(input("Enter your spotify username: "))
 
     def get_song_id(title, artist):
         """takes in song title and artist as strings and returns Spotify ID or 0 if not found."""
-        spot = spotipy.Spotify()
-        results = spot.search(title + " " + artist, limit=15)
-        # pprint(results, indent=3)
-        if results['tracks']['total'] > 0:
-            # print(str(len(results)) + ' results')
-            attempt = 0
-            # print((results['tracks']['items'][0]))
-            for result in results:
-                # pprint(result, indent=3)
-                res = results['tracks']['items'][attempt]
-                # # print(res['artists'][0]['name'].lower())
-                # # print(res['name'].lower())
-                # # print((res['artists'][0]['name']).lower() == artist.lower())
-                # # print(res['name'].lower() == title.lower())
-                if res['artists'][0]['name'].lower() == artist.lower():
-                    if res['name'].lower() == title.lower():
-                        print(res['id'])
-                        return res['id']
-                print("Could not find ID for %s - %s\n" % (title, artist))
-                return "0"
-        else:
-            print('No results for')
+        sp = spotipy.Spotify()
+        try:
+            results = sp.search(title + " " + artist, limit=15)
+            # pprint(results, indent=3)
+            if results['tracks']['total'] > 0:
+                # print(str(len(results)) + ' results')
+                attempt = 0
+                # print((results['tracks']['items'][0]))
+                for result in results:
+                    # pprint(result, indent=3)
+                    res = results['tracks']['items'][attempt]
+                    if res['artists'][0]['name'].lower() == artist.lower():
+                        if res['name'].lower() == title.lower():
+                            print(res['id'])
+                            return res['id']
+                    # print("Could not find ID for %s - %s\n" % (title, artist))
+                    return "0"
+            else:
+                # print('No results for %s - %s\n' % (title, artist))
+                return '0'
+        except Exception as e:
+            print(e)
             return '0'
-
 
     def make_song_id_list(data):
         """Data is a list of track dictionaries. Search AA for each track, and appends nid to a list of ids.
@@ -183,23 +185,29 @@ class SpotMeths(object):
             nid = SpotMeths.get_song_id(track["Title"], track["Artist"])
             if nid == "0":
                 failed_tracks.append(track)
-                pass
             else:
                 song_ids.append(nid)
                 track["TrackID"] = nid
-        print('finished getting song_ids')
+        print('finished getting song_ids\n')
+        print("Couldn't find id for the following tracks:\n")
+        for track in failed_tracks:
+            print('%s - %s' % (track["Title"], track["Artist"]))
         return song_ids
 
-    def choose_update_playlist(song_ids, playlist_name):
+    def choose_update_playlist(username, song_ids, playlist_name, token):
         """ Searches user playlists for the desired name.
          Then adds songs to it, or creates a new one."""
 
-        # playlist_name = input("Enter a name for the playlist to be created")
+        # scope = 'playlist-modify-public playlist-modify-private playlist-read-private'
+        # token = util.prompt_for_user_token(username, scope)
+        # if token:
         new = False
         playlist_id = ''
-        sp = spotipy.Spotify()
+        sp = spotipy.Spotify(auth=token)
         user_playlists = sp.user_playlists(username)
-        print(user_playlists)
+        pprint(user_playlists)
+        for item in user_playlists['items']:
+            print(item['name'])
 
 
 
@@ -218,9 +226,11 @@ def spotify_main(playlist_name):
     username = input("Enter your spotify username: ")
     # token = util.prompt_for_user_token(username)
     # if token:
-    SpotMeths.authorize(username)
+    token = SpotMeths.authorize(username)
+    # sp = spotipy.Spotify(auth=token)
     data = parse_shazams()
     song_ids = SpotMeths.make_song_id_list(data)
+    SpotMeths.choose_update_playlist(username, song_ids, playlist_name, token)
 
 
 def google_main(playlist_name):
