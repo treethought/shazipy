@@ -5,8 +5,6 @@ from gmusicapi import Mobileclient
 import spotipy
 import spotipy.util as util
 api = Mobileclient()
-from pprint import pprint
-
 
 
 def parse_shazams():
@@ -39,6 +37,7 @@ def parse_shazams():
         except:
             print('Could not read file. is it html?\n')
             parse_shazams()
+
 
 class GooglePlay():
     """Methods for google play all access"""
@@ -220,10 +219,6 @@ class SpotMeths(object):
             print('Finished')
         except Exception as e:
             print(e)
-            # print("trying again")
-            # sp.user_playlist_add_tracks(username, playlist_id, song_ids)
-            # print("Success")
-
 
 
 def spotify_main(playlist_name):
@@ -235,11 +230,11 @@ def spotify_main(playlist_name):
 
 
 def google_main(playlist_name):
-    api = Mobileclient()
     GooglePlay.login()
     data = parse_shazams()
-    GooglePlay.song_ids = GooglePlay.make_song_id_list(data)
+    song_ids = GooglePlay.make_song_id_list(data)
     GooglePlay.choose_update_playlist(song_ids, playlist_name)
+
 
 def main():
     playlist_name = input("Enter a name for the playlist to be created: ")
@@ -250,22 +245,3 @@ def main():
         spotify_main(playlist_name)
 
 main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
