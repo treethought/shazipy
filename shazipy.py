@@ -65,9 +65,9 @@ class GooglePlay():
         for item in results["song_hits"]:
             if item["track"]["title"].lower() == title:
                 if item["track"]["artist"].lower() == artist:
-                    print('ID found for %s - %s' % (artist, title))
+                    print('ID found for {0!s} - {1!s}'.format(artist, title))
                     return item["track"]["nid"]
-        print("Could not find ID for %s - %s\n" % (artist, title))
+        print("Could not find ID for {0!s} - {1!s}\n".format(artist, title))
         return "0"
 
     def make_song_id_list(data):
@@ -117,7 +117,7 @@ class GooglePlay():
         for s in song_ids:
             if len(current_playlist['tracks']) < 999:
                 api.add_songs_to_playlist(playlist_id, s)  # add to playlist until size limit
-                print("added %s" % s)
+                print("added {0!s}".format(s))
             else:
                 playlist_id = api.create_playlist(playlist_name+"2")
                 print('playlist got too large, made a new one')
@@ -151,12 +151,12 @@ class SpotMeths(object):
                     res = results['tracks']['items'][attempt]
                     if res['artists'][0]['name'].lower() == artist.lower():
                         if res['name'].lower() == title.lower():
-                            print('Found ID for %s - %s\n' % (title, artist))
+                            print('Found ID for {0!s} - {1!s}\n'.format(title, artist))
                             return res['id']
-                    print("Could not find ID for %s - %s\n" % (title, artist))
+                    print("Could not find ID for {0!s} - {1!s}\n".format(title, artist))
                     return "0"
             else:
-                print('No results for %s - %s\n' % (title, artist))
+                print('No results for {0!s} - {1!s}\n'.format(title, artist))
                 return '0'
         except Exception as e:
             print(e)
@@ -177,7 +177,7 @@ class SpotMeths(object):
         print('Finished getting song_ids\n')
         print("Couldn't find id for the following tracks:\n")
         for track in failed_tracks:
-            print('%s - %s' % (track["Title"], track["Artist"]))
+            print('{0!s} - {1!s}'.format(track["Title"], track["Artist"]))
         return song_ids
 
     def choose_update_playlist(username, song_ids, playlist_name, token):
@@ -197,7 +197,7 @@ class SpotMeths(object):
                 # current_playlist = p
                 playlist_id = p['id']
                 print(playlist_id)
-                print("Found your shazam playlist with ID: %s" % playlist_id)
+                print("Found your shazam playlist with ID: {0!s}".format(playlist_id))
                 break
 
         if playlist_id == '':                                # playlist_name not found, create one
